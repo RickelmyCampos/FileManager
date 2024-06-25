@@ -5,5 +5,6 @@ data class FileModel(
     val isDirectory: Boolean,
     val isFile: Boolean,
     val path:String,
-    val absolutePath:String
+    val absolutePath:String,
+    val isSelected:Boolean=false
 )

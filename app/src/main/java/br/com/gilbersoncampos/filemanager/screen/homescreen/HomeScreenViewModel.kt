@@ -49,6 +49,38 @@ class HomeScreenViewModel : ViewModel() {
             loadFiles(stackDirectories.last())
         }
     }
+
+    fun onClickFile(file: FileModel) {
+        if (file.isDirectory) {
+            val path = file.absolutePath
+            loadFiles(path)
+            addInStackDirectory(path)
+        } else {
+            // Adicionar ação para abrir arquivos se necessário
+        }
+    }
+
+    fun onLongPressFile(file: FileModel) {
+        val index = _uiState.value.listFiles.indexOf(file)
+        if (index != -1) {
+            val mListFile = _uiState.value.listFiles.toMutableList()
+            mListFile[index] = file.copy(isSelected = !file.isSelected)
+            _uiState.value = _uiState.value.copy(listFiles = mListFile)
+
+        }
+
+    }
+    fun deleteFolders(){
+        //TODO não apaga se tiver algo dentro (abrir um popup ou detelar todos os filhos)
+        _uiState.value.listFiles.forEach { file->
+            if(file.isSelected){
+                val f=File(file.path)
+                f.delete()
+            }
+        }
+        loadFiles(_uiState.value.currentPath)
+
+    }
     fun createFolder(name: String) {
         val dir = File(_uiState.value.currentPath, name)
         if (!dir.exists()) {
