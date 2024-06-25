@@ -1,7 +1,5 @@
 package br.com.gilbersoncampos.filemanager.screen.homescreen
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Environment
 import androidx.lifecycle.ViewModel
 import br.com.gilbersoncampos.filemanager.data.mapper.toModel
@@ -11,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 
-class HomScreenViewModel : ViewModel() {
+class HomeScreenViewModel : ViewModel() {
     private val initialPath = Environment.getExternalStorageDirectory().absolutePath
     private val _uiState = MutableStateFlow(
         HomeUiState(
@@ -43,19 +41,21 @@ class HomScreenViewModel : ViewModel() {
         if (stackDirectories.last() != path) {
             stackDirectories.add(path)
         }
-
-
-
     }
 
     fun backDirectory() {
         if (stackDirectories.size > 1) {
             stackDirectories.removeLast()
-
             loadFiles(stackDirectories.last())
         }
     }
-
+    fun createFolder(name: String) {
+        val diretorio = File(_uiState.value.currentPath, name)
+        if (!diretorio.exists()) {
+            diretorio.mkdirs()
+            loadFiles(_uiState.value.currentPath)
+        }
+    }
 }
 
 data class HomeUiState(

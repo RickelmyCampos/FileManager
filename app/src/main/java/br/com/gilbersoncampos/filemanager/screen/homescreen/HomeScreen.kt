@@ -21,6 +21,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,19 +32,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.gilbersoncampos.filemanager.data.model.FileModel
 import br.com.gilbersoncampos.filemanager.ui.theme.FileManagerTheme
 
 @Composable
-fun HomeScreen(viewModel: HomScreenViewModel = viewModel()) {
+fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     var isGrade by remember { mutableStateOf(true) }
+    var showDialog by remember { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxSize()) {
 
-        PathComponent(uiState.currentPath){
+        PathComponent(uiState.currentPath) {
             viewModel.loadFiles(it)
             viewModel.addInStackDirectory(it)
+        }
+        if (showDialog) {
+            DialogFolder(onDismiss = { showDialog = false }) {
+                viewModel.createFolder(it)
+            }
         }
         Row {
             Button(onClick = {
@@ -55,6 +63,9 @@ fun HomeScreen(viewModel: HomScreenViewModel = viewModel()) {
                 isGrade = !isGrade
             }) {
                 Text(text = if (isGrade) "lista" else "Grade")
+            }
+            Button(onClick = { showDialog = true }) {
+                Text(text = "Criar Pasta")
             }
         }
         if (isGrade) {
@@ -93,10 +104,45 @@ fun HomeScreen(viewModel: HomScreenViewModel = viewModel()) {
 }
 
 @Composable
+fun DialogFolder(onDismiss: () -> Unit, onCreate: (String) -> Unit) {
+    var text by remember {
+        mutableStateOf("")
+    }
+    Dialog(onDismissRequest = onDismiss) {
+        Card() {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(text = "Insira o nome da Pasta")
+                TextField(value = text, onValueChange = { text = it })
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(onClick = onDismiss) {
+                        Text(text = "Cancelar")
+                    }
+                    Button(onClick = {
+                        onCreate(text)
+                        onDismiss()
+                    }) {
+                        Text(text = "Criar")
+                    }
+                }
+            }
+
+        }
+    }
+}
+
+@Composable
 fun PathComponent(path: String, onClick: (String) -> Unit) {
     val listDirectory = path.split("/")
     Row {
-        val first =listDirectory.size-3
+        val first = listDirectory.size - 3
 
 //        repeat(if(first>0)3 else listDirectory.size){
 //            val directory=listDirectory[it+first]
@@ -111,22 +157,23 @@ fun PathComponent(path: String, onClick: (String) -> Unit) {
 //
 //        }
         LazyRow {
-            items(listDirectory) {
-                 directory->
+            items(listDirectory) { directory ->
 
-                    Text(text = directory + ">", modifier = Modifier.clickable {
-                        val newPath =  listDirectory.reducePathInToDirectory(directory)
-                        onClick(newPath)
-                    })
+                Text(text = directory + ">", modifier = Modifier.clickable {
+                    val newPath = listDirectory.reducePathInToDirectory(directory)
+                    onClick(newPath)
+                })
 
             }
         }
     }
 }
-fun List<String>.reducePathInToDirectory(directory: String):String{
-    val subList = this.subList(0, this.indexOf(directory)+1)
-    return   subList.reduce { acc, s -> "$acc/$s" }
+
+fun List<String>.reducePathInToDirectory(directory: String): String {
+    val subList = this.subList(0, this.indexOf(directory) + 1)
+    return subList.reduce { acc, s -> "$acc/$s" }
 }
+
 @Composable
 fun FileItem(file: FileModel, onClick: () -> Unit) {
     Row(
@@ -234,5 +281,14 @@ fun PathComponentPreview() {
     val path = "T/B/A/C"
     FileManagerTheme {
         PathComponent(path) {}
+    }
+}
+
+@Composable
+@Preview
+fun DialogFolderPreview() {
+    val path = "T/B/A/C"
+    FileManagerTheme {
+        DialogFolder({}, {})
     }
 }
