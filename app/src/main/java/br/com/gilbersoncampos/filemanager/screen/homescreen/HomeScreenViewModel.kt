@@ -50,9 +50,9 @@ class HomeScreenViewModel : ViewModel() {
         }
     }
     fun createFolder(name: String) {
-        val diretorio = File(_uiState.value.currentPath, name)
-        if (!diretorio.exists()) {
-            diretorio.mkdirs()
+        val dir = File(_uiState.value.currentPath, name)
+        if (!dir.exists()) {
+            dir.mkdirs()
             loadFiles(_uiState.value.currentPath)
         }
     }
