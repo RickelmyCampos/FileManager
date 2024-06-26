@@ -2,14 +2,15 @@ package br.com.gilbersoncampos.filemanager.screen.homescreen
 
 import android.os.Environment
 import androidx.lifecycle.ViewModel
-import br.com.gilbersoncampos.filemanager.data.mapper.toModel
 import br.com.gilbersoncampos.filemanager.data.model.FileModel
+import br.com.gilbersoncampos.filemanager.data.repository.FileRepository
+import br.com.gilbersoncampos.filemanager.data.repository.FileRepositoryImpl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.io.File
 
-class HomeScreenViewModel : ViewModel() {
+class HomeScreenViewModel(private val fileRepository: FileRepository = FileRepositoryImpl()) :
+    ViewModel() {
     private val initialPath = Environment.getExternalStorageDirectory().absolutePath
     private val _uiState = MutableStateFlow(
         HomeUiState(
@@ -26,10 +27,7 @@ class HomeScreenViewModel : ViewModel() {
     }
 
     fun loadFiles(path: String) {
-        val file = File(path)
-        val list = file.listFiles()?.toList() ?: emptyList()
-        val listModel = list.map { it.toModel() }
-
+        val listModel = fileRepository.loadFile(path)
         _uiState.value = _uiState.value.copy(
             listFiles = listModel,
             currentPath = path,
@@ -70,23 +68,17 @@ class HomeScreenViewModel : ViewModel() {
         }
 
     }
-    fun deleteFolders(){
+
+    fun deleteFolders() {
         //TODO não apaga se tiver algo dentro (abrir um popup ou detelar todos os filhos)
-        _uiState.value.listFiles.forEach { file->
-            if(file.isSelected){
-                val f=File(file.path)
-                f.delete()
-            }
-        }
+        fileRepository.deleteFiles(_uiState.value.listFiles)
         loadFiles(_uiState.value.currentPath)
 
     }
+
     fun createFolder(name: String) {
-        val dir = File(_uiState.value.currentPath, name)
-        if (!dir.exists()) {
-            dir.mkdirs()
-            loadFiles(_uiState.value.currentPath)
-        }
+        fileRepository.createFolder(_uiState.value.currentPath, name)
+        loadFiles(_uiState.value.currentPath)
     }
 }
 
