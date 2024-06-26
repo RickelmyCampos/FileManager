@@ -1,5 +1,6 @@
 package br.com.gilbersoncampos.filemanager.data.repository
 
+import android.util.Log
 import br.com.gilbersoncampos.filemanager.data.mapper.toModel
 import br.com.gilbersoncampos.filemanager.data.model.FileModel
 import java.io.File
@@ -9,6 +10,7 @@ interface FileRepository{
     fun deleteFile(path:String)
     fun deleteFiles(listFiles:List<FileModel>)
     fun createFolder(path: String,name:String)
+    fun renameFile(file:FileModel, newName:String)
 }
 class FileRepositoryImpl:FileRepository {
     override fun loadFile(path: String):List<FileModel> {
@@ -35,6 +37,14 @@ class FileRepositoryImpl:FileRepository {
         if (!dir.exists()) {
             dir.mkdirs()
         }
+    }
+
+    override fun renameFile(file: FileModel, newName: String) {
+
+       val fileF=File(file.path)
+        val newNamePath=file.path.replace(file.fileName,newName)
+        val sucess=fileF.renameTo(File(newNamePath))
+        Log.d("FileRepository","REnomeou $sucess\n OldPathFile: $file.parent+newName \n NewName: ${newNamePath}")
     }
 
 }

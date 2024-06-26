@@ -2,7 +2,6 @@
 
 package br.com.gilbersoncampos.filemanager.screen.homescreen
 
-import androidx.annotation.ColorRes
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -67,7 +66,14 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
                 DropdownMenu(
                     expanded = menuOptionsIsShow,
                     onDismissRequest = { menuOptionsIsShow = !menuOptionsIsShow }) {
-                    DropdownMenuItem(text = { Text(text = "Deletar") }, onClick = { viewModel.deleteFolders() })
+                    DropdownMenuItem(
+                        text = { Text(text = "Deletar") },
+                        onClick = { viewModel.deleteFolders() })
+                    if (uiState.numberOfSelected == 1) {
+                        DropdownMenuItem(
+                            text = { Text(text = "RENOMEAR") },
+                            onClick = { viewModel.renameFile("meu novo nome") })
+                    }
                 }
             }
         })
