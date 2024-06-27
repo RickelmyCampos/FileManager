@@ -17,7 +17,8 @@ class HomeScreenViewModel(private val fileRepository: FileRepository = FileRepos
             currentPath = "",
             listFiles = listOf(),
             historicDirectory = listOf(),
-            numberOfSelected = 0
+
+            listSelected = listOf()
         )
     )
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -34,6 +35,7 @@ class HomeScreenViewModel(private val fileRepository: FileRepository = FileRepos
             currentPath = path,
             historicDirectory = listOf()
         )
+        clearListSelected()
     }
 
     fun addInStackDirectory(path: String) {
@@ -57,28 +59,25 @@ class HomeScreenViewModel(private val fileRepository: FileRepository = FileRepos
         } else {
             // Adicionar ação para abrir arquivos se necessário
         }
-        loadNumberOfSelected()
     }
 
     fun onLongPressFile(file: FileModel) {
         val index = _uiState.value.listFiles.indexOf(file)
         if (index != -1) {
             val mListFile = _uiState.value.listFiles.toMutableList()
-            mListFile[index] = file.copy(isSelected = !file.isSelected)
-            _uiState.value = _uiState.value.copy(listFiles = mListFile)
+            val mListSelected = _uiState.value.listSelected.toMutableList()
+            val nfile = file.copy(isSelected = !file.isSelected)
+            mListFile[index] = nfile
+            if (nfile.isSelected) {
+                mListSelected.add(nfile)
+            } else {
+                mListSelected.remove(nfile)
+            }
+            _uiState.value =
+                _uiState.value.copy(listFiles = mListFile, listSelected = mListSelected)
         }
-        loadNumberOfSelected()
     }
 
-    private fun loadNumberOfSelected() {
-        val qtdSelected = _uiState.value.listFiles.fold(0) { acc, value ->
-            if (value.isSelected)
-                acc + 1
-            else
-                acc
-        }
-        _uiState.value = _uiState.value.copy(numberOfSelected = qtdSelected)
-    }
 
     fun deleteFolders() {
         //TODO não apaga se tiver algo dentro (abrir um popup ou detelar todos os filhos)
@@ -92,12 +91,19 @@ class HomeScreenViewModel(private val fileRepository: FileRepository = FileRepos
         file?.let {
             fileRepository.renameFile(it, newName)
         }
+
         loadFiles(_uiState.value.currentPath)
+
     }
 
     fun createFolder(name: String) {
         fileRepository.createFolder(_uiState.value.currentPath, name)
         loadFiles(_uiState.value.currentPath)
+    }
+    private fun clearListSelected(){
+        val mListSelected=_uiState.value.listSelected.toMutableList()
+        mListSelected.clear()
+        _uiState.value=_uiState.value.copy(listSelected = mListSelected)
     }
 }
 
@@ -105,5 +111,6 @@ data class HomeUiState(
     val currentPath: String,
     val listFiles: List<FileModel>,
     val historicDirectory: List<String>,
-    val numberOfSelected: Int
+    val listSelected: List<FileModel>,
+
 )

@@ -56,8 +56,9 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     var isGrade by remember { mutableStateOf(true) }
     var showDialog by remember { mutableStateOf(false) }
+    var showRenameDialog by remember { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(title = { }, actions = {
+        TopAppBar(title = { Text(text = "Arquivos") }, actions = {
             var menuOptionsIsShow by remember {
                 mutableStateOf(false)
             }
@@ -68,11 +69,17 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
                     onDismissRequest = { menuOptionsIsShow = !menuOptionsIsShow }) {
                     DropdownMenuItem(
                         text = { Text(text = "Deletar") },
-                        onClick = { viewModel.deleteFolders() })
-                    if (uiState.numberOfSelected == 1) {
+                        onClick = {
+                            viewModel.deleteFolders()
+                            menuOptionsIsShow = !menuOptionsIsShow
+                        })
+                    if (uiState.listSelected.size == 1) {
                         DropdownMenuItem(
                             text = { Text(text = "RENOMEAR") },
-                            onClick = { viewModel.renameFile("meu novo nome") })
+                            onClick = {
+                                showRenameDialog = true
+                                menuOptionsIsShow = !menuOptionsIsShow
+                            })
                     }
                 }
             }
@@ -84,6 +91,15 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
         if (showDialog) {
             DialogFolder(onDismiss = { showDialog = false }) {
                 viewModel.createFolder(it)
+            }
+        }
+        if (showRenameDialog) {
+            DialogFolder(
+                onDismiss = { showRenameDialog = false },
+                label = "Renomear Pasta",
+                oldName = uiState.listSelected[0].fileName
+            ) {
+                viewModel.renameFile(it)
             }
         }
         Row {
@@ -133,9 +149,14 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
 }
 
 @Composable
-fun DialogFolder(onDismiss: () -> Unit, onCreate: (String) -> Unit) {
+fun DialogFolder(
+    onDismiss: () -> Unit,
+    label: String = "Insira o nome da Pasta",
+    oldName: String = "",
+    onCreate: (String) -> Unit
+) {
     var text by remember {
-        mutableStateOf("")
+        mutableStateOf(oldName)
     }
     Dialog(onDismissRequest = onDismiss) {
         Card() {
@@ -145,7 +166,7 @@ fun DialogFolder(onDismiss: () -> Unit, onCreate: (String) -> Unit) {
                     .padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(text = "Insira o nome da Pasta")
+                Text(text = label)
                 TextField(value = text, onValueChange = { text = it })
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -344,6 +365,6 @@ fun PathComponentPreview() {
 fun DialogFolderPreview() {
     val path = "T/B/A/C"
     FileManagerTheme {
-        DialogFolder({}, {})
+        DialogFolder({}) {}
     }
 }
