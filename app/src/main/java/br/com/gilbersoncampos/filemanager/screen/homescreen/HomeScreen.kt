@@ -58,32 +58,35 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
     var showDialog by remember { mutableStateOf(false) }
     var showRenameDialog by remember { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(title = { Text(text = "Arquivos") }, actions = {
-            var menuOptionsIsShow by remember {
-                mutableStateOf(false)
-            }
-            IconButton(onClick = { menuOptionsIsShow = !menuOptionsIsShow }) {
-                Icon(imageVector = Icons.Default.MoreVert, contentDescription = "More")
-                DropdownMenu(
-                    expanded = menuOptionsIsShow,
-                    onDismissRequest = { menuOptionsIsShow = !menuOptionsIsShow }) {
-                    DropdownMenuItem(
-                        text = { Text(text = "Deletar") },
-                        onClick = {
-                            viewModel.deleteFolders()
-                            menuOptionsIsShow = !menuOptionsIsShow
-                        })
-                    if (uiState.listSelected.size == 1) {
+        TopAppBar(
+            title = { Text(text = "Arquivos") },
+            actions = {
+                var menuOptionsIsShow by remember {
+                    mutableStateOf(false)
+                }
+                IconButton(onClick = { menuOptionsIsShow = !menuOptionsIsShow }) {
+                    Icon(imageVector = Icons.Default.MoreVert, contentDescription = "More")
+                    DropdownMenu(
+                        expanded = menuOptionsIsShow,
+                        onDismissRequest = { menuOptionsIsShow = !menuOptionsIsShow }) {
                         DropdownMenuItem(
-                            text = { Text(text = "RENOMEAR") },
+                            text = { Text(text = "Deletar") },
                             onClick = {
-                                showRenameDialog = true
+                                viewModel.deleteFolders()
                                 menuOptionsIsShow = !menuOptionsIsShow
                             })
+                        if (uiState.listSelected.size == 1) {
+                            DropdownMenuItem(
+                                text = { Text(text = "RENOMEAR") },
+                                onClick = {
+                                    showRenameDialog = true
+                                    menuOptionsIsShow = !menuOptionsIsShow
+                                })
+                        }
                     }
                 }
             }
-        })
+        )
         PathComponent(uiState.currentPath) {
             viewModel.loadFiles(it)
             viewModel.addInStackDirectory(it)

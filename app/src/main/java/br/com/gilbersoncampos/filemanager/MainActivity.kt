@@ -25,6 +25,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,14 +41,13 @@ import br.com.gilbersoncampos.filemanager.ui.theme.FileManagerTheme
 const val REQUEST_CODE = 1
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3Api::class)
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             FileManagerTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(modifier = Modifier.fillMaxSize(),) { innerPadding ->
                     Column(modifier = Modifier.padding(innerPadding)) {
 
                         App()
@@ -94,7 +94,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun App() {
     HomeScreen()
-
 }
 
 @Preview(showBackground = true)
