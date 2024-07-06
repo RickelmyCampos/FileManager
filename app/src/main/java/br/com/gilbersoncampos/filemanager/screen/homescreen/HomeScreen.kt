@@ -49,6 +49,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.gilbersoncampos.filemanager.data.model.FileModel
 import br.com.gilbersoncampos.filemanager.ui.theme.FileManagerTheme
+import com.gilbersoncampos.domain.model.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,9 +101,9 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
             DialogFolder(
                 onDismiss = { showRenameDialog = false },
                 label = "Renomear Pasta",
-                oldName = uiState.listSelected[0].fileName
+                oldName = uiState.listSelected[0].name
             ) {
-                viewModel.renameFile(it)
+                viewModel.renameFile(uiState.listSelected[0], it)
             }
         }
         Row {
@@ -124,7 +125,7 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
             LazyVerticalGrid(columns = GridCells.Fixed(if (isGrade) 2 else 1)) {
                 items(uiState.listFiles) { file ->
 
-                    FileGradeItem(file = file, onClick = {
+                    FileGradeItem(isSelected = uiState.listSelected.contains(file),file = file, onClick = {
                         viewModel.onClickFile(file)
                     }, onLongPress = {
                         viewModel.onLongPressFile(file)
@@ -228,7 +229,7 @@ fun List<String>.reducePathInToDirectory(directory: String): String {
 }
 
 @Composable
-fun FileItem(file: FileModel, onClick: () -> Unit) {
+fun FileItem(file: File, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -240,13 +241,13 @@ fun FileItem(file: FileModel, onClick: () -> Unit) {
             imageVector = if (file.isDirectory) Icons.Default.Email else Icons.Default.Info,
             contentDescription = null
         )
-        Text(text = file.fileName)
+        Text(text = file.name)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FileGradeItem(file: FileModel, onClick: () -> Unit, onLongPress: () -> Unit) {
+fun FileGradeItem(isSelected:Boolean,file: File, onClick: () -> Unit, onLongPress: () -> Unit) {
 
     Column(
         verticalArrangement = Arrangement.Center,
@@ -258,7 +259,7 @@ fun FileGradeItem(file: FileModel, onClick: () -> Unit, onLongPress: () -> Unit)
                 .size(158.dp)
                 .padding(8.dp)
         ) {
-            if (file.isSelected) {
+            if (isSelected) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -292,7 +293,7 @@ fun FileGradeItem(file: FileModel, onClick: () -> Unit, onLongPress: () -> Unit)
                         imageVector = if (file.isDirectory) Icons.Default.Email else Icons.Default.Info,
                         contentDescription = null
                     )
-                    Text(text = file.fileName)
+                    Text(text = file.name)
                 }
             }
 
@@ -304,26 +305,27 @@ fun FileGradeItem(file: FileModel, onClick: () -> Unit, onLongPress: () -> Unit)
 @Composable
 @Preview(showBackground = true)
 fun FileGradeItemPreview() {
-    val file = FileModel(
-        fileName = "directory",
+    val file = File(
+        name = "directory",
         isFile = false,
         isDirectory = true,
         path = "sgahdsg/asd/qwe",
         absolutePath = "sgahdsg/asd/qwe",
-
-        )
+        isHidden = false
+    )
     val file2 =
-        FileModel(
-            fileName = "file",
+        File(
+            name = "file",
             isFile = true,
             isDirectory = false,
             path = "sgahdsg/asd/qwe",
             absolutePath = "sgahdsg/asd/qwe",
+            isHidden = false
         )
     FileManagerTheme {
         Column {
-            FileGradeItem(file, {}) {}
-            FileGradeItem(file2, {}) {}
+            FileGradeItem(false,file, {}) {}
+            FileGradeItem(false,file2, {}) {}
         }
     }
 }
@@ -331,19 +333,20 @@ fun FileGradeItemPreview() {
 @Composable
 @Preview(showBackground = true)
 fun FileItemPreview() {
-    val file = FileModel(
-        fileName = "directory",
+    val file = File(
+        name = "directory",
         isFile = false,
         isDirectory = true,
-        path = "sgahdsg/asd/qwe", absolutePath = "sgahdsg/asd/qwe",
+        path = "sgahdsg/asd/qwe", absolutePath = "sgahdsg/asd/qwe", isHidden = false
     )
     val file2 =
-        FileModel(
-            fileName = "file",
+        File(
+            name = "file",
             isFile = true,
             isDirectory = false,
             path = "sgahdsg/asd/qwe",
             absolutePath = "sgahdsg/asd/qwe",
+            isHidden = false
         )
 
     FileManagerTheme {

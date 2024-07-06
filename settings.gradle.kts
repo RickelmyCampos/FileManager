@@ -18,7 +18,10 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 rootProject.name = "FileManager"
 include(":app")
- 
+include(":core")
+include(":core:domain")
+include(":core:presentation")
+include(":core:data")

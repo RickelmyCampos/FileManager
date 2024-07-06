@@ -2,14 +2,13 @@ package br.com.gilbersoncampos.filemanager.screen.homescreen
 
 import android.os.Environment
 import androidx.lifecycle.ViewModel
-import br.com.gilbersoncampos.filemanager.data.model.FileModel
-import br.com.gilbersoncampos.filemanager.data.repository.FileRepository
-import br.com.gilbersoncampos.filemanager.data.repository.FileRepositoryImpl
+import com.gilbersoncampos.domain.model.File
+import com.gilbersoncampos.domain.useCase.FileUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-class HomeScreenViewModel(private val fileRepository: FileRepository = FileRepositoryImpl()) :
+class HomeScreenViewModel(private val fileUseCase: FileUseCase = FileUseCase()) :
     ViewModel() {
     private val initialPath = Environment.getExternalStorageDirectory().absolutePath
     private val _uiState = MutableStateFlow(
@@ -29,7 +28,7 @@ class HomeScreenViewModel(private val fileRepository: FileRepository = FileRepos
     }
 
     fun loadFiles(path: String) {
-        val listModel = fileRepository.loadFile(path)
+        val listModel = fileUseCase.getListFiles(path)
         _uiState.value = _uiState.value.copy(
             listFiles = listModel,
             currentPath = path,
@@ -51,7 +50,7 @@ class HomeScreenViewModel(private val fileRepository: FileRepository = FileRepos
         }
     }
 
-    fun onClickFile(file: FileModel) {
+    fun onClickFile(file: File) {
         if (file.isDirectory) {
             val path = file.absolutePath
             loadFiles(path)
@@ -61,56 +60,51 @@ class HomeScreenViewModel(private val fileRepository: FileRepository = FileRepos
         }
     }
 
-    fun onLongPressFile(file: FileModel) {
+    fun onLongPressFile(file: File) {
         val index = _uiState.value.listFiles.indexOf(file)
+        val mListSelected = _uiState.value.listSelected.toMutableList()
         if (index != -1) {
-            val mListFile = _uiState.value.listFiles.toMutableList()
-            val mListSelected = _uiState.value.listSelected.toMutableList()
-            val nfile = file.copy(isSelected = !file.isSelected)
-            mListFile[index] = nfile
-            if (nfile.isSelected) {
-                mListSelected.add(nfile)
+            if (mListSelected.contains(file)) {
+                mListSelected.remove(file)
             } else {
-                mListSelected.remove(nfile)
+                mListSelected.add(file)
             }
             _uiState.value =
-                _uiState.value.copy(listFiles = mListFile, listSelected = mListSelected)
+                _uiState.value.copy(listSelected = mListSelected)
         }
     }
 
 
     fun deleteFolders() {
         //TODO não apaga se tiver algo dentro (abrir um popup ou detelar todos os filhos)
-        fileRepository.deleteFiles(_uiState.value.listFiles)
+        fileUseCase.deleteFiles(_uiState.value.listFiles)
         loadFiles(_uiState.value.currentPath)
 
     }
 
-    fun renameFile(newName: String) {
-        val file = _uiState.value.listFiles.find { it.isSelected }
-        file?.let {
-            fileRepository.renameFile(it, newName)
-        }
+    fun renameFile(file: File, newName: String) {
+        fileUseCase.renameFile(file, newName)
 
         loadFiles(_uiState.value.currentPath)
 
     }
 
     fun createFolder(name: String) {
-        fileRepository.createFolder(_uiState.value.currentPath, name)
+        fileUseCase.createFolder(_uiState.value.currentPath, name)
         loadFiles(_uiState.value.currentPath)
     }
-    private fun clearListSelected(){
-        val mListSelected=_uiState.value.listSelected.toMutableList()
+
+    private fun clearListSelected() {
+        val mListSelected = _uiState.value.listSelected.toMutableList()
         mListSelected.clear()
-        _uiState.value=_uiState.value.copy(listSelected = mListSelected)
+        _uiState.value = _uiState.value.copy(listSelected = mListSelected)
     }
 }
 
 data class HomeUiState(
     val currentPath: String,
-    val listFiles: List<FileModel>,
+    val listFiles: List<File>,
     val historicDirectory: List<String>,
-    val listSelected: List<FileModel>,
+    val listSelected: List<File>,
 
-)
+    )
